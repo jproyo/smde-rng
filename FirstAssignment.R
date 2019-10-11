@@ -1,5 +1,5 @@
 
-fibflagged <- read.table("/Users/juan/Projects/upc/master/smde/rng-j/sample.csv", 
+fibflagged <- read.table("/Users/juan/Projects/upc/master/smde/smde-rng/500_random_numbers.csv", 
     header = FALSE, sep = ",", na.strings = "NA", dec = ".", strip.white = TRUE)
 
 fibflagged$bins <- with(fibflagged, binVariable(V1, bins = 10, method = "intervals", 
@@ -33,4 +33,66 @@ to_be_test_chi_r_fibflagged <- within(merge_fibflagged_r_comb, {
 })
 
 test <- chisq.test(to_be_test_chi_r_fibflagged, correct = FALSE)
+
+fibflagged$morebins <- with(fibflagged, binVariable(V1, bins = 20, method = "intervals", 
+    labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20")))
+
+distribution_r$morebins <- with(distribution_r, binVariable(obs, bins = 20, method = "intervals", 
+    labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20")))
+
+fibflagged_trans_20bins <- as.data.frame(with(fibflagged, table(morebins)))
+
+distribution_r_trans_20bins <- as.data.frame(with(distribution_r, table(morebins)))
+
+
+merge_fibflagged_r_comb_20bins <- merge(fibflagged_trans_20bins, distribution_r_trans_20bins, all = TRUE, 
+    by = "row.names")
+rownames(merge_fibflagged_r_comb_20bins) <- merge_fibflagged_r_comb_20bins$Row.names
+merge_fibflagged_r_comb_20bins$Row.names <- NULL
+
+
+
+test_chi_r_fibflagged_20bins <- within(merge_fibflagged_r_comb_20bins, {
+	morebins.x <- NULL
+	morebins.y <- NULL
+})
+
+
+chi_20bins <- chisq.test(test_chi_r_fibflagged_20bins, correct = FALSE)
+
+
+
+Norm_m0_s1 <- read.table("/Users/juan/Projects/upc/master/smde/smde-rng/1500_normal_mu_0_sigma_1.csv", 
+    header = FALSE, sep = ",", na.strings = "NA", dec = ".", strip.white = TRUE)
+
+Norm_m10_s1 <- read.table("/Users/juan/Projects/upc/master/smde/smde-rng/1500_normal_mu_10_sigma_1.csv", 
+    header = FALSE, sep = ",", na.strings = "NA", dec = ".", strip.white = TRUE)
+
+Norm_m0_s1_2 <- read.table("/Users/juan/Projects/upc/master/smde/smde-rng/1500_normal_mu_0_sigma_1_2.csv", 
+    header = FALSE, sep = ",", na.strings = "NA", dec = ".", strip.white = TRUE)
+
+
+Norm_v1n=data.frame(x1=Norm_m0_s1, x2="v1")
+Norm_v2n=data.frame(x1=Norm_m10_s1, x2="v2")
+Norm_v3n=data.frame(x1=Norm_m0_s1_2, x2="v3")
+data=mergeRows(Norm_v1n, Norm_v2n, common.only=FALSE)
+data=mergeRows(as.data.frame(data), Norm_v3n, common.only=FALSE)
+
+AnovaModel.1 <- aov(V1 ~ x2, data=data)
+summary(AnovaModel.1)
+Boxplot(V1~x2, data=data, id.method="y")
+	
+
+library("lmtest", lib.loc="~/R/win-library/3.0")
+
+#The observations within each sample must be independent.
+#Durbin Watson 
+library("lmtest", lib.loc="~/R/win-library/3.0")
+dwtest(AnovaModel.1, alternative ="two.sided")
+#The populations from which the samples are selected must be normal.
+#Shapiro test
+shapiro.test(residuals(AnovaModel.1))
+#The populations from which the samples are selected must have equal variances (homogeneity of variance)
+#Breusch Pagan test
+lmtest::bptest(AnovaModel.1)
 
