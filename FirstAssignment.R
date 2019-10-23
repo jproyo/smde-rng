@@ -96,3 +96,30 @@ shapiro.test(residuals(AnovaModel.1))
 #Breusch Pagan test
 lmtest::bptest(AnovaModel.1)
 
+
+wine_data <- data(wine, package = "FactoMineR")
+
+wine_data_soil_odori <- wine[,c("Odor.Intensity.before.shaking", "Soil")]
+colnames(wine_data_soil_odori) <- c("odori", "soil")
+AnovaModel_soil_odori <- aov(odori ~ soil, data=wine_data_soil_odori)
+summary(AnovaModel_soil_odori)
+
+
+wine_data_soil_aromaq <- wine[,c("Aroma.quality.before.shaking", "Soil")]
+colnames(wine_data_soil_aromaq) <- c("aromaq", "soil")
+AnovaModel_soil_aromaq <- aov(aromaq ~ soil, data=wine_data_soil_aromaq)
+summary(AnovaModel_soil_aromaq)
+
+
+wine_data_label_odori <- wine[,c("Odor.Intensity.before.shaking", "Label")]
+colnames(wine_data_label_odori) <- c("odori", "label")
+AnovaModel_label_odori <- aov(odori ~ label, data=wine_data_label_odori)
+summary(AnovaModel_label_odori)
+
+
+wine_data_label_aromaq <- wine[,c("Aroma.quality.before.shaking", "Label")]
+colnames(wine_data_label_aromaq) <- c("aromaq", "label")
+AnovaModel_label_aromaq <- aov(aromaq ~ label, data=wine_data_label_aromaq)
+summary(AnovaModel_label_aromaq)
+
+
