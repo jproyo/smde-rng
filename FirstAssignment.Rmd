@@ -99,7 +99,7 @@ test <- chisq.test(to_be_test_chi_r_fibflagged, correct = FALSE)
 
 ### Conlusion Chi Test
 
-After this **test** has a **p-value** of **`r toString(test$p.value)`** , therefore with can deduce that we can accept the algorithm but for a number of 10 bins as it seems it is generating Random Numbers in an uniform distribution.
+After this **test** has a **p-value** of **0.819475004287325** , therefore with can deduce that we can accept the algorithm but for a number of 10 bins as it seems it is generating Random Numbers in an uniform distribution.
 
 
 ## Another test with 20 bins on each distribution
@@ -166,7 +166,7 @@ chi_20bins <- chisq.test(test_chi_r_fibflagged_20bins, correct = FALSE)
 
 ### Conclusion Chi Test
 
-After this **p-value** of **`r toString(chi_20bins$p.value)`**, therefore with can deduce when we increase the beans the algorithm is not generating a random uniform distribution.
+After this **p-value** of **0.00175158290728414**, therefore with can deduce when we increase the beans the algorithm is not generating a random uniform distribution.
 
 
 # Question 2 - Assignment
@@ -347,5 +347,128 @@ This means that different Labels are also affecting the Aroma quality of the win
 It seems that both are features Label and Soil are afecting wine factors. Although this, we can state from the analysis above that in the case of **Label** feature for Aroma Quality before shaking,
 it is not affecting so much as the other because in spite the *p-value* is small it is near 0.20 which indicates that the populations are more similar in means than the other cases.
 
- 
+
+# Question 3 - Assigment
+
+## Decathlon Data
+
+### Loading data
+
+```{r}
+data(decathlon, package = "FactoMineR")
+names(decathlon) <- make.names(names(decathlon))
+```
+
+### Spliting Data - Training and Test
+
+```{r}
+if (!require("caTools")) {
+    install.packages("caTools")
+    library(caTools)
+}
+split = sample.split(decathlon, SplitRatio = 0.6)
+training_decathlon_set = subset(decathlon, split == TRUE)
+test_decathlon_set = subset(decathlon, split == FALSE)
+```
+
+## Analysing Data
+
+### First Scenario of 1500m with all Variables
+
+```{r}
+names(training_decathlon_set) <- make.names(names(training_decathlon_set))
+RegModel.17 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Points + Pole.vault + 
+    Rank + Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.17)
+```
+
+We can see based on the results that the rank is not affecting the model, so we can remove it.
+
+```{r}
+RegModel.18 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Points + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.18)
+```
+
+Here we have a very good model to predict the next results. We have an slope since the **p-value** has a small value **4.842e-14**
+
+Lets try to remove Points to see what happend with the model
+
+
+```{r}
+RegModel.19 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.19)
+```
+
+We can see that if we remove points, we dont have almost relation between the variables to explain the model. Lets add Points again and remove other Variable to see if the relations stay still.
+
+
+```{r}
+RegModel.21 <- lm(X1500m ~ Discus + High.jump + Long.jump + Points + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.21)
+```
+
+We can see again if we keep Points and remove other like Javaline, we again couldnt have a model to do predictions. We are going to add again Javaline.
+
+```{r}
+RegModel.23 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Points + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.23)
+```
+
+### Testing assumptions on this linear model
+
+1. Durbin Watson Test for independence
+
+```{r}
+library("lmtest", lib.loc = "~/R/win-library/3.0")
+dwtest(RegModel.23, alternative = "two.sided")
+```
+
+We can see that the Regretion Model pass the independence test whith a p-value of **0.3621**
+
+2. Shapiro Test for Normality 
+
+```{r}
+shapiro.test(residuals(RegModel.23))
+```
+
+We can see that the distribution is a Normal distribution with a p-value of **0.5407**
+
+2. Breusch Pagan Test - Homogenity of the Variance
+
+
+```{r}
+bptest(RegModel.23)
+```
+
+We can see here that since the p-value is small **0.2054**, although not too much, the variance seems homogenous.
+
+
+### Predictions
+
+
+```{r}
+prediction <- predict(RegModel.23, newdata = test_decathlon_set, interval = "prediction")
+prediction
+```
+
+Lets compare with the Real data
+
+```{r}
+test_only_with_x1500m <- subset(test_decathlon_set, select = c("X1500m"))
+test_only_with_x1500m
+```
+
+```{r}
+predicted_data <- data.frame(prediction)
+predicted_data["real_data_x1500m"] = test_only_with_x1500m["X1500m"]
+predicted_data
+```
+
+As we can appreciate all the real values of the test data set are between the interval **lwr** and **upr**, which indicates that the prediction was properly done, because the model with the trained data was accurate.
+
+
 

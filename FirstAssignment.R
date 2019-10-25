@@ -123,3 +123,51 @@ AnovaModel_label_aromaq <- aov(aromaq ~ label, data=wine_data_label_aromaq)
 summary(AnovaModel_label_aromaq)
 
 
+data(decathlon, package = "FactoMineR")
+names(decathlon) <- make.names(names(decathlon))
+
+if(!require("caTools")){
+    install.packages("caTools")
+    library(caTools)
+}
+split = sample.split(decathlon, SplitRatio = 0.6)
+training_decathlon_set = subset(decathlon, split == TRUE)
+test_decathlon_set = subset(decathlon, split == FALSE)
+
+
+RegModel.17 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Points + Pole.vault + 
+    Rank + Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.17)
+
+RegModel.18 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Points + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.18)
+
+RegModel.19 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.19)
+
+RegModel.21 <- lm(X1500m ~ Discus + High.jump + Long.jump + Points + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.21)
+
+
+RegModel.23 <- lm(X1500m ~ Discus + High.jump + Javeline + Long.jump + Points + Pole.vault + 
+    Shot.put + X100m + X110m.hurdle + X400m, data = training_decathlon_set)
+summary(RegModel.23)
+
+library("lmtest", lib.loc="~/R/win-library/3.0")
+dwtest(RegModel.23, alternative="two.sided")
+
+shapiro.test(residuals(RegModel.23))
+
+bptest(RegModel.23)
+
+prediction <- predict(RegModel.23, newdata=test_decathlon_set, interval="prediction")
+
+test_only_with_x1500m <- subset(test_decathlon_set, select=c("X1500m"))
+
+predicted_data <- data.frame(prediction)
+predicted_data["real_data_x1500m"] = test_only_with_x1500m["X1500m"]
+
+
